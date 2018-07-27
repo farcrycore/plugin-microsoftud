@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<webtop>
+	<section id="admin" mergeType="merge">
+		<subsection id="general">
+			<menu id="farcryud" sequence="100" label="User Directory" permission="SecurityPolicyManagementTab">
+				<menuitem id="listmicrosoftudgroup" sequence="30" label="Microsoft Groups" link="/admin/customadmin.cfm?module=customlists/mudGroup.cfm&amp;plugin=microsoftud" />
+			</menu>
+		</subsection>
+	</section>
+</webtop>
