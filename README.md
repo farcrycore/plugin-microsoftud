@@ -8,7 +8,7 @@ Microsoft UD provides federated logins for FarCry publishing platform using [OAu
 
 ## Installation
 
-### Part 1: Google Configuration
+### Part 1: MSFT App Configuration
 
 Create a Microsoft Account and login to the [Application Registration Portal].
 
@@ -61,9 +61,9 @@ Often you will have an existing account in the application you have added Micoso
 This can lead to issues with:
 - history tracking
 - content ownership
-- the old account won't be disabled if the Google account is
+- the old account won't be disabled
 
-In the Webtop there is a utility for merging an existing account into your Google login account.
+In the Webtop there is a utility for merging an existing account into your Microsoft UD login account.
 
 ![FarCry Merge Profile](docs/farcry_merge.png)
 
