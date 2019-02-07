@@ -314,7 +314,7 @@
 	
 	<cffunction name="getRedirectURL" access="public" output="false" returntype="string" hint="For use with getAuthorisationURL and getRefreshToken">
 		
-		<cfreturn "https://#cgi.http_host##application.url.webroot#/mudLogin/displayLogin" />
+		<cfreturn "#application.fc.lib.seo.getCanonicalProtocol()#://#cgi.http_host##application.url.webroot#/mudLogin/displayLogin" />
 	</cffunction>
 	
 	<cffunction name="throwError" access="private" output="false" returntype="void">
