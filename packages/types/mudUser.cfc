@@ -1,4 +1,5 @@
-<cfcomponent displayname="Microsoft UD User" hint="User model for the Microsoft User Directory." extends="farcry.core.packages.types.types" output="false" description="">
+<cfcomponent displayname="Microsoft UD User" hint="User model for the Microsoft User Directory." extends="farcry.core.packages.types.types" output="false" description=""
+	bObjectBroker="true">
 	
 	<cfproperty ftLabel="UserID" 
 				name="userid" type="string" default="" hint="The userid to use in FarCry" 
