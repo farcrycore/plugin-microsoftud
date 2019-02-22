@@ -6,7 +6,7 @@
 				ftType="string" />
 				
 	<cfproperty ftLabel="Refresh Token"
-				name="refreshToken" type="string" default="" />
+				name="refreshToken" type="longchar" default="" />
 				
 	<cfproperty ftLabel="Provider Domain" ftType="string"
 				name="providerDomain" type="string" default="" 
