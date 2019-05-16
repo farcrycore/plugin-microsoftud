@@ -195,6 +195,7 @@
 		<cfargument name="clientid" type="string" required="false" />
 		<cfargument name="redirectURL" type="string" required="false" />
 		<cfargument name="state" type="string" required="false" default="" />
+		<cfargument name="prompt" type="string" required="false" default="" />
 		
 		<cfset var scope = application.fapi.getConfig("microsoftUD", "scope") />
 		<cfset var tenant = application.fapi.getConfig("microsoftUD", "tenant") />
@@ -206,7 +207,7 @@
 			<cfset arguments.redirectURL = getRedirectURL() />
 		</cfif>
 
-		<cfreturn "https://login.microsoftonline.com/#tenant#/oauth2/v2.0/authorize?response_type=code&client_id=#arguments.clientid#&redirect_uri=#urlencodedformat(arguments.redirectURL)#&scope=#urlencodedformat(scope)#&access_type=offline&state=#urlencodedformat(arguments.state)#" />
+		<cfreturn "https://login.microsoftonline.com/#tenant#/oauth2/v2.0/authorize?response_type=code&client_id=#arguments.clientid#&redirect_uri=#urlencodedformat(arguments.redirectURL)#&scope=#urlencodedformat(scope)#&access_type=offline&prompt=#urlencodedformat(arguments.prompt)#&state=#urlencodedformat(arguments.state)#" />
 	</cffunction>
 	
 	<cffunction name="getTokens" access="private" output="false" returntype="struct">
