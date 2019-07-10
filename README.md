@@ -53,6 +53,7 @@ Configure the plugin:
 - Deploy the new content types - **mudUser** and **mudGroup** through the webtop `ADMIN > Developer Tools > COAPI`. 
 - Create a Microsoft user group (Admin -> General Admin -> User Directory -> Microsoft Groups) for your specific email domain (anyone logging in with an email within this domain will be automatically assigned to this group)
 - Add your Group to the appropriate FarCry roles (Admin -> General Admin -> Roles & Permissions -> Roles)
+- Set a public end point for Anonymous user by adding Filters([type.][prefix*|webskin]) for the webskin (Admin -> General Admin -> Roles & Permissions -> Roles -> Anonymous -> webskins)
 
 ## But wait, there's more!
 
