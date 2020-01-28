@@ -10,7 +10,7 @@ Microsoft UD provides federated logins for FarCry publishing platform using [OAu
 
 ### Part 1: MSFT App Configuration
 
-Create a Microsoft Account and login to [Azure App services](https://apps.dev.microsoft.com/)
+Create a Microsoft Account and login to [Azure App Registrations](https://aka.ms/appregistrations)
 
 
 
