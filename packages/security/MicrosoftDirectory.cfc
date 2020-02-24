@@ -23,13 +23,13 @@
 			<!--- <cftry> --->
 				<!--- Get Microsoft access information --->
 				<cfset stTokens = getTokens(url.code,application.fapi.getConfig('microsoftUD', 'clientID'),application.fapi.getConfig('microsoftUD', 'clientSecret'),application.security.userdirectories.microsoftUD.getRedirectURL(),application.fapi.getConfig('microsoftUD', 'proxy')) />
-				<cfset stProfile = getMicrosoftProfile(stTokens.access_token,application.fapi.getConfig('microsoftUD', 'proxy')) />
+				<cfset var stProfile = getMicrosoftProfile(stTokens.access_token,application.fapi.getConfig('microsoftUD', 'proxy')) />
 				<cfparam name="session.security.mud" default="#structnew()#" >
 				<cfset session.security.mud[stProfile.id] = stTokens />
 				<cfset session.security.mud[stProfile.id].profile = stProfile />
 
 				<!--- If there isn't a mudUser record, create one --->
-				<cfset stUser = oUser.getByUserID(stProfile.id) />
+				<cfset var stUser = oUser.getByUserID(stProfile.id) />
 				<cfif structisempty(stUser)>
 					<cfset stUser = oUser.getData(createuuid()) />
 					<cfset stUser.userid = stProfile.id />
@@ -219,7 +219,7 @@
 		<cfargument name="tenant" type="string" required="false" default="#application.fapi.getConfig("microsoftUD", "tenant")#" />
 		<cfargument name="proxy" type="string" required="false" default="" />
 		
-		<cfset var cfhttp = structnew() />
+		<cfset var stResponse = "">
 		<cfset var stResult = structnew() />
 		<cfset var stAttr = structnew() />
 
@@ -230,7 +230,7 @@
 			<cfset structappend(stAttr,parseProxy(arguments.proxy)) />
 		</cfif>
 		
-		<cfhttp attributeCollection="#stAttr#">
+		<cfhttp attributeCollection="#stAttr#" result="stResponse">
 			<cfhttpparam type="formfield" name="code" value="#arguments.authorizationCode#" />
 			<cfhttpparam type="formfield" name="client_id" value="#arguments.clientID#" />
 			<cfhttpparam type="formfield" name="client_secret" value="#arguments.clientSecret#" />
@@ -239,11 +239,11 @@
 			<cfhttpparam type="formfield" name="scope" value="#arguments.scope#" />
 		</cfhttp>
 
-		<cfif not cfhttp.statuscode eq "200 OK">
-			<cfset throwError(message="Error accessing Microsoft Auth API: #cfhttp.statuscode#",endpoint="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token",response=trim(cfhttp.filecontent),args=arguments,stAttr=stAttr) />
+		<cfif not stResponse.statuscode eq "200 OK">
+			<cfset throwError(message="Error accessing Microsoft Auth API: #stResponse.statuscode#",endpoint="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token",response=trim(stResponse.filecontent),args=arguments,stAttr=stAttr) />
 		</cfif>
 		
-		<cfset stResult = deserializeJSON(cfhttp.FileContent.toString()) />
+		<cfset stResult = deserializeJSON(stResponse.FileContent.toString()) />
 		<cfset stResult.access_token_expires = dateadd("s",stResult.expires_in,now()) />
 		
 		<cfreturn stResult />
@@ -257,12 +257,12 @@
 		<cfargument name="scope" type="string" required="false" default="#application.fapi.getConfig("microsoftUD", "scope")#" />
 		<cfargument name="tenant" type="string" required="false" default="#application.fapi.getConfig("microsoftUD", "tenant")#" />
 
-		<cfset var cfhttp = structnew() />
+		<cfset var stResponse = "">
 		<cfset var stResult = structnew() />
 		<cfset var stProxy = parseProxy(arguments.proxy) />
 		
 		<cfif isdefined("arguments.refresh_token") and datecompare(arguments.access_token_expires,now()) lt 0>
-			<cfhttp url="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token" method="POST" attributeCollection="#stProxy#">
+			<cfhttp url="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token" method="POST" attributeCollection="#stProxy#" result="stResponse">
 				<cfhttpparam type="formfield" name="refresh_token" value="#arguments.refreshToken#" />
 				<cfhttpparam type="formfield" name="client_id" value="#arguments.clientID#" />
 				<cfhttpparam type="formfield" name="client_secret" value="#arguments.clientSecret#" />
@@ -270,15 +270,15 @@
 				<cfhttpparam type="formfield" name="scope" value="#arguments.scope#" />
 			</cfhttp>
 			
-			<cfif not cfhttp.statuscode eq "200 OK">
-				<cfset throwError(message="Error accessing Microsoft Auth API: #cfhttp.statuscode#",endpoint="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token",response=cfhttp.filecontent,argumentCollection=arguments) />
+			<cfif not stResponse.statuscode eq "200 OK">
+				<cfset throwError(message="Error accessing Microsoft Auth API: #stResponse.statuscode#",endpoint="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token",response=stResponse.filecontent,argumentCollection=arguments) />
 			</cfif>
 			
-			<cfset stResult = deserializeJSON(cfhttp.FileContent.toString()) />
+			<cfset stResult = deserializeJSON(stResponse.FileContent.toString()) />
 			
 			<cfreturn stResult.access_token />
 		<cfelseif not isdefined("arguments.refresh_token")>
-			<cfset throwError(message="Error accessing Microsoft Auth API: access token has expired and no refresh token is available",endpoint="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token",response=cfhttp.filecontent,argumentCollection=arguments) />
+			<cfset throwError(message="Error accessing Microsoft Auth API: access token has expired and no refresh token is available",endpoint="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token",response=stResponse.filecontent,argumentCollection=arguments) />
 		</cfif>
 		
 		<cfreturn arguments.access_token />
@@ -288,20 +288,20 @@
 		<cfargument name="accessToken" type="string" required="true" />
 		<cfargument name="proxy" type="string" required="false" default="" />
 		
-		<cfset var cfhttp = structnew() />
+		<cfset var stResponse = "">
 		<cfset var stResult = structnew() />
 		<cfset var stProxy = parseProxy(arguments.proxy) />
 		<cfset var k = "" />
 		
-		<cfhttp url="https://graph.microsoft.com/v1.0/me" method="GET" attributeCollection="#stProxy#">
+		<cfhttp url="https://graph.microsoft.com/v1.0/me" method="GET" attributeCollection="#stProxy#" result="stResponse">
 			<cfhttpparam type="header" name="Authorization" value="Bearer #arguments.accessToken#" />
 		</cfhttp>
 
-		<cfif not cfhttp.statuscode eq "200 OK">
-			<cfset throwError(message="Error accessing Microsoft Graph API: #cfhttp.statuscode#",endpoint="https://graph.microsoft.com/v1.0/me",response=cfhttp.filecontent,argumentCollection=arguments) />
+		<cfif not stResponse.statuscode eq "200 OK">
+			<cfset throwError(message="Error accessing Microsoft Graph API: #stResponse.statuscode#",endpoint="https://graph.microsoft.com/v1.0/me",response=stResponse.filecontent,argumentCollection=arguments) />
 		</cfif>
 		
-		<cfset stResult = deserializeJSON(cfhttp.FileContent.toString()) />
+		<cfset stResult = deserializeJSON(stResponse.FileContent.toString()) />
 		
 		<!--- Clean out the null values --->
 		<cfloop collection="#stResult#" item="k">
