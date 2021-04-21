@@ -230,7 +230,7 @@
 			<cfset structappend(stAttr,parseProxy(arguments.proxy)) />
 		</cfif>
 		
-		<cfhttp attributeCollection="#stAttr#" result="stResponse">
+		<cfhttp attributeCollection="#stAttr#" result="stResponse" timeout="10">
 			<cfhttpparam type="formfield" name="code" value="#arguments.authorizationCode#" />
 			<cfhttpparam type="formfield" name="client_id" value="#arguments.clientID#" />
 			<cfhttpparam type="formfield" name="client_secret" value="#arguments.clientSecret#" />
@@ -262,7 +262,7 @@
 		<cfset var stProxy = parseProxy(arguments.proxy) />
 		
 		<cfif isdefined("arguments.refresh_token") and datecompare(arguments.access_token_expires,now()) lt 0>
-			<cfhttp url="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token" method="POST" attributeCollection="#stProxy#" result="stResponse">
+			<cfhttp url="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token" method="POST" attributeCollection="#stProxy#" result="stResponse" timeout="10">
 				<cfhttpparam type="formfield" name="refresh_token" value="#arguments.refreshToken#" />
 				<cfhttpparam type="formfield" name="client_id" value="#arguments.clientID#" />
 				<cfhttpparam type="formfield" name="client_secret" value="#arguments.clientSecret#" />
@@ -293,7 +293,7 @@
 		<cfset var stProxy = parseProxy(arguments.proxy) />
 		<cfset var k = "" />
 		
-		<cfhttp url="https://graph.microsoft.com/v1.0/me" method="GET" attributeCollection="#stProxy#" result="stResponse">
+		<cfhttp url="https://graph.microsoft.com/v1.0/me" method="GET" attributeCollection="#stProxy#" result="stResponse" timeout="10">
 			<cfhttpparam type="header" name="Authorization" value="Bearer #arguments.accessToken#" />
 		</cfhttp>
 
