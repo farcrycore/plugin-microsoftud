@@ -88,9 +88,9 @@
 		<cfset var qUser = "" />
 		
 		<cfquery datasource="#application.dsn#" name="qUser">
-			select	*
-			from	#application.dbowner#mudUser
-			where	lower(userid)=<cfqueryparam cfsqltype="cf_sql_varchar" value="#lcase(arguments.userid)#" />
+			SELECT *
+			FROM #application.dbowner#mudUser
+			WHERE userid = <cfqueryparam cfsqltype="cf_sql_varchar" value="#arguments.userid#" />
 		</cfquery>
 		
 		<cfif qUser.recordcount>
