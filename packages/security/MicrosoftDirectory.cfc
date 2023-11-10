@@ -39,6 +39,10 @@
 					<cfset stUser.providerDomain = listlast(session.security.mud[stProfile.id].profile.userPrincipalName,"@") />
 					<cfset oUser.setData(stProperties=stUser) />
 				<cfelse>
+					<cfif structkeyexists(stTokens,"refresh_token")>
+						<cfset stUser.refreshToken = stTokens.refresh_token />
+						<cfset oUser.setData(stProperties=stUser) />
+					</cfif>
 					<cfset session.security.mud[stProfile.id].refresh_token = stUser.refreshToken />
 				</cfif>
 
@@ -248,6 +252,42 @@
 		
 		<cfreturn stResult />
 	</cffunction>
+	<cffunction name="getAccessTokenRefresh" access="private" output="false" returntype="struct">
+		<cfargument name="refresh_token" type="string" required="true" />
+		<cfargument name="access_token_expires" type="date" required="true" />
+		<cfargument name="proxy" type="string" required="false" default="" />
+		<cfargument name="scope" type="string" required="false" default="#application.fapi.getConfig("microsoftUD", "scope")#" />
+		<cfargument name="tenant" type="string" required="false" default="#application.fapi.getConfig("microsoftUD", "tenant")#" />
+
+		<cfset var cfhttp = structnew() />
+		<cfset var stResult = structnew() />
+		<cfset var stProxy = parseProxy(arguments.proxy) />
+		
+		<cfif isdefined("arguments.refresh_token") and datecompare(arguments.access_token_expires,now()) lt 0>
+			<cfhttp url="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token" method="POST" attributeCollection="#stProxy#">
+				<cfhttpparam type="formfield" name="refresh_token" value="#arguments.refresh_token#" />
+				<cfhttpparam type="formfield" name="client_id" value="#application.fapi.getConfig('microsoftUD', 'clientID')#" />
+				<cfhttpparam type="formfield" name="client_secret" value="#application.fapi.getConfig('microsoftUD', 'clientSecret')#" />
+				<cfhttpparam type="formfield" name="grant_type" value="refresh_token" />
+				<cfhttpparam type="formfield" name="scope" value="#arguments.scope#" />
+			</cfhttp>
+			
+			<cfif not cfhttp.statuscode eq "200 OK">
+				<cfset throwError(message="Error accessing Microsoft Auth API: #cfhttp.statuscode#",endpoint="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token",response=cfhttp.filecontent,argumentCollection=arguments) />
+			</cfif>
+			
+			
+			
+			<cfset stResult = deserializeJSON(cfhttp.FileContent.toString()) />
+			
+			<cfreturn stResult />
+		<cfelseif not isdefined("arguments.refresh_token")>
+			<cfset throwError(message="Error accessing Microsoft Auth API: no refresh_token available",endpoint="https://login.microsoftonline.com/#arguments.tenant#/oauth2/v2.0/token",response=cfhttp.filecontent,argumentCollection=arguments) />
+		</cfif>
+		
+		<cfreturn stResult />
+	</cffunction>
+	
 	
 	<cffunction name="getAccessToken" access="public" output="false" returntype="string">
 		<cfargument name="refresh_token" type="string" required="false" />
@@ -311,6 +351,17 @@
 		</cfloop>
 
 		<cfreturn stResult />
+	</cffunction>
+	
+	<cffunction name="checkAccessToken" access="public" output="false" returntype="void" hint="Checks if the access_token has expired and if so, uses the refresh_token to get a new one.">	
+	<cfset var stUser = session.security.mud[listfirst(session.security.userid,'_')]>
+	<cfset var stNewToken = getAccessTokenRefresh(stUser.refresh_token,stUser.access_token_expires)>
+	<!--- now see if a new access_token was passed back and update the session --->
+		<cfif structKeyExists(stNewToken,'access_token')>
+			<cfset session.security.mud[listfirst(session.security.userid,'_')].access_token = stNewToken.access_token>
+			<cfset session.security.mud[listfirst(session.security.userid,'_')].refresh_token = stNewToken.refresh_token>
+			<cfset session.security.mud[listfirst(session.security.userid,'_')].access_token_expires = dateadd("s",stNewToken.expires_in,now()) />
+		</cfif>
 	</cffunction>
 	
 	<cffunction name="getRedirectURL" access="public" output="false" returntype="string" hint="For use with getAuthorisationURL and getRefreshToken">
